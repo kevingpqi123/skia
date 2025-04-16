@@ -35,6 +35,7 @@ GrGLuint GrGLCompileAndAttachShader(const GrGLContext& glCtx,
         return 0;
     }
     const GrGLchar* source = glsl.c_str();
+    printf("----shader----\n%s\n", source);
     GrGLint sourceLength = SkToInt(glsl.size());
     GR_GL_CALL(gli, ShaderSource(shaderId, 1, &source, &sourceLength));
 

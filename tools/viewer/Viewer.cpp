@@ -81,6 +81,7 @@
 #include "tools/viewer/SlideDir.h"
 #include "tools/window/DisplayParams.h"
 
+#include <include/effects/SkDashPathEffect.h>
 #include <algorithm>
 #include <cfloat>
 #include <chrono>
@@ -558,18 +559,19 @@ Viewer::Viewer(int argc, char** argv, void* platformData)
     , fTileScale{0.25f, 0.25f}
     , fPerspectiveMode(kPerspective_Off)
 {
+    printf("-------- skia test --------\n");
     SkGraphics::Init();
 #if defined(SK_ENABLE_SVG)
     SkGraphics::SetOpenTypeSVGDecoderFactory(SkSVGOpenTypeSVGDecoder::Make);
 #endif
     CodecUtils::RegisterAllAvailable();
 
-    gGaneshPathRendererNames[GpuPathRenderers::kDefault] = "Default Path Renderers";
-    gGaneshPathRendererNames[GpuPathRenderers::kAtlas] = "Atlas (tessellation)";
-    gGaneshPathRendererNames[GpuPathRenderers::kTessellation] = "Tessellation";
-    gGaneshPathRendererNames[GpuPathRenderers::kSmall] = "Small paths (cached sdf or alpha masks)";
-    gGaneshPathRendererNames[GpuPathRenderers::kTriangulating] = "Triangulating";
-    gGaneshPathRendererNames[GpuPathRenderers::kNone] = "Software masks";
+//    gGaneshPathRendererNames[GpuPathRenderers::kDefault] = "Default Path Renderers";
+//    gGaneshPathRendererNames[GpuPathRenderers::kAtlas] = "Atlas (tessellation)";
+//    gGaneshPathRendererNames[GpuPathRenderers::kTessellation] = "Tessellation";
+//    gGaneshPathRendererNames[GpuPathRenderers::kSmall] = "Small paths (cached sdf or alpha masks)";
+//    gGaneshPathRendererNames[GpuPathRenderers::kTriangulating] = "Triangulating";
+//    gGaneshPathRendererNames[GpuPathRenderers::kNone] = "Software masks";
 
     SkDebugf("Command line arguments: ");
     for (int i = 1; i < argc; ++i) {
@@ -620,297 +622,297 @@ Viewer::Viewer(int argc, char** argv, void* platformData)
     fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
 
     // Configure timers
-    fStatsLayer.setActive(FLAGS_stats);
-    fAnimateTimer = fStatsLayer.addTimer("Animate", SK_ColorMAGENTA, 0xffff66ff);
-    fPaintTimer = fStatsLayer.addTimer("Paint", SK_ColorGREEN);
-    fFlushTimer = fStatsLayer.addTimer("Flush", SK_ColorRED, 0xffff6666);
+//    fStatsLayer.setActive(FLAGS_stats);
+//    fAnimateTimer = fStatsLayer.addTimer("Animate", SK_ColorMAGENTA, 0xffff66ff);
+//    fPaintTimer = fStatsLayer.addTimer("Paint", SK_ColorGREEN);
+//    fFlushTimer = fStatsLayer.addTimer("Flush", SK_ColorRED, 0xffff6666);
 
     // register callbacks
     fCommands.attach(fWindow);
     fWindow->pushLayer(this);
-    fWindow->pushLayer(&fStatsLayer);
-    fWindow->pushLayer(&fImGuiLayer);
+//    fWindow->pushLayer(&fStatsLayer);
+//    fWindow->pushLayer(&fImGuiLayer);
 
     // add key-bindings
-    fCommands.addCommand(' ', "GUI", "Toggle Debug GUI", [this]() {
-        this->fShowImGuiDebugWindow = !this->fShowImGuiDebugWindow;
-        fWindow->inval();
-    });
+//    fCommands.addCommand(' ', "GUI", "Toggle Debug GUI", [this]() {
+//        this->fShowImGuiDebugWindow = !this->fShowImGuiDebugWindow;
+//        fWindow->inval();
+//    });
     // Command to jump directly to the slide picker and give it focus
-    fCommands.addCommand('/', "GUI", "Jump to slide picker", [this]() {
-        this->fShowImGuiDebugWindow = true;
-        this->fShowSlidePicker = true;
-        fWindow->inval();
-    });
-    // Alias that to Backspace, to match SampleApp
-    fCommands.addCommand(skui::Key::kBack, "Backspace", "GUI", "Jump to slide picker", [this]() {
-        this->fShowImGuiDebugWindow = true;
-        this->fShowSlidePicker = true;
-        fWindow->inval();
-    });
-    fCommands.addCommand('g', "GUI", "Toggle GUI Demo", [this]() {
-        this->fShowImGuiTestWindow = !this->fShowImGuiTestWindow;
-        fWindow->inval();
-    });
-    fCommands.addCommand('z', "GUI", "Toggle zoom window", [this]() {
-        this->fShowZoomWindow = !this->fShowZoomWindow;
-        fWindow->inval();
-    });
-    fCommands.addCommand('Z', "GUI", "Toggle zoom window state", [this]() {
-        this->fZoomWindowFixed = !this->fZoomWindowFixed;
-        fWindow->inval();
-    });
-    fCommands.addCommand('v', "Swapchain", "Toggle vsync on/off", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        paramsBuilder.disableVsync(!params->disableVsync());
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('V', "Swapchain", "Toggle delayed acquire on/off (Metal only)", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        paramsBuilder.delayDrawableAcquisition(!params->delayDrawableAcquisition());
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('r', "Redraw", "Toggle redraw", [this]() {
-        fRefresh = !fRefresh;
-        fWindow->inval();
-    });
-    fCommands.addCommand('s', "Overlays", "Toggle stats display", [this]() {
-        fStatsLayer.setActive(!fStatsLayer.getActive());
-        fWindow->inval();
-    });
-    fCommands.addCommand('0', "Overlays", "Reset stats", [this]() {
-        fStatsLayer.resetMeasurements();
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('C', "GUI", "Toggle color histogram", [this]() {
-        this->fShowHistogramWindow = !this->fShowHistogramWindow;
-        fWindow->inval();
-    });
-    fCommands.addCommand('c', "Modes", "Cycle color mode", [this]() {
-        switch (fColorMode) {
-            case ColorMode::kLegacy:
-                this->setColorMode(ColorMode::kColorManaged8888);
-                break;
-            case ColorMode::kColorManaged8888:
-                this->setColorMode(ColorMode::kColorManagedF16);
-                break;
-            case ColorMode::kColorManagedF16:
-                this->setColorMode(ColorMode::kColorManagedF16Norm);
-                break;
-            case ColorMode::kColorManagedF16Norm:
-                this->setColorMode(ColorMode::kLegacy);
-                break;
-        }
-    });
-    fCommands.addCommand('w', "Modes", "Toggle wireframe", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        GrContextOptions grOpts = params->grContextOptions();
-        grOpts.fWireframeMode = !grOpts.fWireframeMode;
-        paramsBuilder.grContextOptions(grOpts);
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        fWindow->inval();
-    });
-    fCommands.addCommand('w', "Modes", "Toggle reduced shaders", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        GrContextOptions grOpts = params->grContextOptions();
-        grOpts.fReducedShaderVariations = !grOpts.fReducedShaderVariations;
-        paramsBuilder.grContextOptions(grOpts);
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        fWindow->inval();
-    });
-    fCommands.addCommand(skui::Key::kRight, "Right", "Navigation", "Next slide", [this]() {
-        this->setCurrentSlide(fCurrentSlide < fSlides.size() - 1 ? fCurrentSlide + 1 : 0);
-    });
-    fCommands.addCommand(skui::Key::kLeft, "Left", "Navigation", "Previous slide", [this]() {
-        this->setCurrentSlide(fCurrentSlide > 0 ? fCurrentSlide - 1 : fSlides.size() - 1);
-    });
-    fCommands.addCommand(skui::Key::kUp, "Up", "Transform", "Zoom in", [this]() {
-        this->changeZoomLevel(1.f / 32.f);
-        fWindow->inval();
-    });
-    fCommands.addCommand(skui::Key::kDown, "Down", "Transform", "Zoom out", [this]() {
-        this->changeZoomLevel(-1.f / 32.f);
-        fWindow->inval();
-    });
-
-    fCommands.addCommand('d', "Modes", "Change rendering backend", [this]() {
-        int currIdx = -1;
-        for (size_t i = 0; i < kSupportedBackendTypeCount; i++) {
-            if (kSupportedBackends[i] == fBackendType) {
-                currIdx = int(i);
-                break;
-            }
-        }
-        SkASSERT(currIdx >= 0);
-        auto newBackend = kSupportedBackends[(currIdx + 1) % kSupportedBackendTypeCount];
-        this->setBackend(newBackend);
-    });
-    fCommands.addCommand('K', "IO", "Save slide to SKP", [this]() {
-        fSaveToSKP = true;
-        fWindow->inval();
-    });
-    fCommands.addCommand('&', "Overlays", "Show slide dimensios", [this]() {
-        fShowSlideDimensions = !fShowSlideDimensions;
-        fWindow->inval();
-    });
-    fCommands.addCommand('G', "Modes", "Geometry", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        SkSurfaceProps newProps;
-
-        uint32_t flags = params->surfaceProps().flags();
-        SkPixelGeometry defaultPixelGeometry = fDisplay->surfaceProps().pixelGeometry();
-        if (!fDisplayOverrides.fSurfaceProps.fPixelGeometry) {
-            fDisplayOverrides.fSurfaceProps.fPixelGeometry = true;
-            newProps = SkSurfaceProps(flags, kUnknown_SkPixelGeometry);
-        } else {
-            switch (params->surfaceProps().pixelGeometry()) {
-                case kUnknown_SkPixelGeometry:
-                    newProps = SkSurfaceProps(flags, kRGB_H_SkPixelGeometry);
-                    break;
-                case kRGB_H_SkPixelGeometry:
-                    newProps = SkSurfaceProps(flags, kBGR_H_SkPixelGeometry);
-                    break;
-                case kBGR_H_SkPixelGeometry:
-                    newProps = SkSurfaceProps(flags, kRGB_V_SkPixelGeometry);
-                    break;
-                case kRGB_V_SkPixelGeometry:
-                    newProps = SkSurfaceProps(flags, kBGR_V_SkPixelGeometry);
-                    break;
-                case kBGR_V_SkPixelGeometry:
-                    newProps = SkSurfaceProps(flags, defaultPixelGeometry);
-                    fDisplayOverrides.fSurfaceProps.fPixelGeometry = false;
-                    break;
-            }
-        }
-        paramsBuilder.surfaceProps(newProps);
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('H', "Font", "Hinting mode", [this]() {
-        if (!fFontOverrides.fHinting) {
-            fFontOverrides.fHinting = true;
-            fFont.setHinting(SkFontHinting::kNone);
-        } else {
-            switch (fFont.getHinting()) {
-                case SkFontHinting::kNone:
-                    fFont.setHinting(SkFontHinting::kSlight);
-                    break;
-                case SkFontHinting::kSlight:
-                    fFont.setHinting(SkFontHinting::kNormal);
-                    break;
-                case SkFontHinting::kNormal:
-                    fFont.setHinting(SkFontHinting::kFull);
-                    break;
-                case SkFontHinting::kFull:
-                    fFont.setHinting(SkFontHinting::kNone);
-                    fFontOverrides.fHinting = false;
-                    break;
-            }
-        }
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('D', "Modes", "DFT", [this]() {
-        auto params = fWindow->getRequestedDisplayParams();
-        auto paramsBuilder = make_display_params_builder(params);
-        uint32_t flags = params->surfaceProps().flags();
-        flags ^= SkSurfaceProps::kUseDeviceIndependentFonts_Flag;
-        SkSurfaceProps newProps = SkSurfaceProps(flags, params->surfaceProps().pixelGeometry());
-
-        paramsBuilder.surfaceProps(newProps);
-        fWindow->setRequestedDisplayParams(paramsBuilder.build());
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('L', "Font", "Subpixel Antialias Mode", [this]() {
-        if (!fFontOverrides.fEdging) {
-            fFontOverrides.fEdging = true;
-            fFont.setEdging(SkFont::Edging::kAlias);
-        } else {
-            switch (fFont.getEdging()) {
-                case SkFont::Edging::kAlias:
-                    fFont.setEdging(SkFont::Edging::kAntiAlias);
-                    break;
-                case SkFont::Edging::kAntiAlias:
-                    fFont.setEdging(SkFont::Edging::kSubpixelAntiAlias);
-                    break;
-                case SkFont::Edging::kSubpixelAntiAlias:
-                    fFont.setEdging(SkFont::Edging::kAlias);
-                    fFontOverrides.fEdging = false;
-                    break;
-            }
-        }
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('S', "Font", "Subpixel Position Mode", [this]() {
-        if (!fFontOverrides.fSubpixel) {
-            fFontOverrides.fSubpixel = true;
-            fFont.setSubpixel(false);
-        } else {
-            if (!fFont.isSubpixel()) {
-                fFont.setSubpixel(true);
-            } else {
-                fFontOverrides.fSubpixel = false;
-            }
-        }
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('B', "Font", "Baseline Snapping", [this]() {
-        if (!fFontOverrides.fBaselineSnap) {
-            fFontOverrides.fBaselineSnap = true;
-            fFont.setBaselineSnap(false);
-        } else {
-            if (!fFont.isBaselineSnap()) {
-                fFont.setBaselineSnap(true);
-            } else {
-                fFontOverrides.fBaselineSnap = false;
-            }
-        }
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('p', "Transform", "Toggle Perspective Mode", [this]() {
-        fPerspectiveMode = (kPerspective_Real == fPerspectiveMode) ? kPerspective_Fake
-                                                                   : kPerspective_Real;
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('P', "Transform", "Toggle Perspective", [this]() {
-        fPerspectiveMode = (kPerspective_Off == fPerspectiveMode) ? kPerspective_Real
-                                                                  : kPerspective_Off;
-        this->updateTitle();
-        fWindow->inval();
-    });
-    fCommands.addCommand('a', "Transform", "Toggle Animation", [this]() {
-        fAnimTimer.togglePauseResume();
-    });
-    fCommands.addCommand('u', "GUI", "Zoom UI", [this]() {
-        fZoomUI = !fZoomUI;
-        fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
-        fWindow->inval();
-    });
-    fCommands.addCommand('=', "Transform", "Apply Backing Scale", [this]() {
-        fApplyBackingScale = !fApplyBackingScale;
-        fWindow->inval();
-    });
-    fCommands.addCommand('$', "ViaSerialize", "Toggle ViaSerialize", [this]() {
-        fDrawViaSerialize = !fDrawViaSerialize;
-        this->updateTitle();
-        fWindow->inval();
-    });
+//    fCommands.addCommand('/', "GUI", "Jump to slide picker", [this]() {
+//        this->fShowImGuiDebugWindow = true;
+//        this->fShowSlidePicker = true;
+//        fWindow->inval();
+//    });
+//    // Alias that to Backspace, to match SampleApp
+//    fCommands.addCommand(skui::Key::kBack, "Backspace", "GUI", "Jump to slide picker", [this]() {
+//        this->fShowImGuiDebugWindow = true;
+//        this->fShowSlidePicker = true;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('g', "GUI", "Toggle GUI Demo", [this]() {
+//        this->fShowImGuiTestWindow = !this->fShowImGuiTestWindow;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('z', "GUI", "Toggle zoom window", [this]() {
+//        this->fShowZoomWindow = !this->fShowZoomWindow;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('Z', "GUI", "Toggle zoom window state", [this]() {
+//        this->fZoomWindowFixed = !this->fZoomWindowFixed;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('v', "Swapchain", "Toggle vsync on/off", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        paramsBuilder.disableVsync(!params->disableVsync());
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('V', "Swapchain", "Toggle delayed acquire on/off (Metal only)", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        paramsBuilder.delayDrawableAcquisition(!params->delayDrawableAcquisition());
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('r', "Redraw", "Toggle redraw", [this]() {
+//        fRefresh = !fRefresh;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('s', "Overlays", "Toggle stats display", [this]() {
+//        fStatsLayer.setActive(!fStatsLayer.getActive());
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('0', "Overlays", "Reset stats", [this]() {
+//        fStatsLayer.resetMeasurements();
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('C', "GUI", "Toggle color histogram", [this]() {
+//        this->fShowHistogramWindow = !this->fShowHistogramWindow;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('c', "Modes", "Cycle color mode", [this]() {
+//        switch (fColorMode) {
+//            case ColorMode::kLegacy:
+//                this->setColorMode(ColorMode::kColorManaged8888);
+//                break;
+//            case ColorMode::kColorManaged8888:
+//                this->setColorMode(ColorMode::kColorManagedF16);
+//                break;
+//            case ColorMode::kColorManagedF16:
+//                this->setColorMode(ColorMode::kColorManagedF16Norm);
+//                break;
+//            case ColorMode::kColorManagedF16Norm:
+//                this->setColorMode(ColorMode::kLegacy);
+//                break;
+//        }
+//    });
+//    fCommands.addCommand('w', "Modes", "Toggle wireframe", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        GrContextOptions grOpts = params->grContextOptions();
+//        grOpts.fWireframeMode = !grOpts.fWireframeMode;
+//        paramsBuilder.grContextOptions(grOpts);
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('w', "Modes", "Toggle reduced shaders", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        GrContextOptions grOpts = params->grContextOptions();
+//        grOpts.fReducedShaderVariations = !grOpts.fReducedShaderVariations;
+//        paramsBuilder.grContextOptions(grOpts);
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand(skui::Key::kRight, "Right", "Navigation", "Next slide", [this]() {
+//        this->setCurrentSlide(fCurrentSlide < fSlides.size() - 1 ? fCurrentSlide + 1 : 0);
+//    });
+//    fCommands.addCommand(skui::Key::kLeft, "Left", "Navigation", "Previous slide", [this]() {
+//        this->setCurrentSlide(fCurrentSlide > 0 ? fCurrentSlide - 1 : fSlides.size() - 1);
+//    });
+//    fCommands.addCommand(skui::Key::kUp, "Up", "Transform", "Zoom in", [this]() {
+//        this->changeZoomLevel(1.f / 32.f);
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand(skui::Key::kDown, "Down", "Transform", "Zoom out", [this]() {
+//        this->changeZoomLevel(-1.f / 32.f);
+//        fWindow->inval();
+//    });
+//
+//    fCommands.addCommand('d', "Modes", "Change rendering backend", [this]() {
+//        int currIdx = -1;
+//        for (size_t i = 0; i < kSupportedBackendTypeCount; i++) {
+//            if (kSupportedBackends[i] == fBackendType) {
+//                currIdx = int(i);
+//                break;
+//            }
+//        }
+//        SkASSERT(currIdx >= 0);
+//        auto newBackend = kSupportedBackends[(currIdx + 1) % kSupportedBackendTypeCount];
+//        this->setBackend(newBackend);
+//    });
+//    fCommands.addCommand('K', "IO", "Save slide to SKP", [this]() {
+//        fSaveToSKP = true;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('&', "Overlays", "Show slide dimensios", [this]() {
+//        fShowSlideDimensions = !fShowSlideDimensions;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('G', "Modes", "Geometry", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        SkSurfaceProps newProps;
+//
+//        uint32_t flags = params->surfaceProps().flags();
+//        SkPixelGeometry defaultPixelGeometry = fDisplay->surfaceProps().pixelGeometry();
+//        if (!fDisplayOverrides.fSurfaceProps.fPixelGeometry) {
+//            fDisplayOverrides.fSurfaceProps.fPixelGeometry = true;
+//            newProps = SkSurfaceProps(flags, kUnknown_SkPixelGeometry);
+//        } else {
+//            switch (params->surfaceProps().pixelGeometry()) {
+//                case kUnknown_SkPixelGeometry:
+//                    newProps = SkSurfaceProps(flags, kRGB_H_SkPixelGeometry);
+//                    break;
+//                case kRGB_H_SkPixelGeometry:
+//                    newProps = SkSurfaceProps(flags, kBGR_H_SkPixelGeometry);
+//                    break;
+//                case kBGR_H_SkPixelGeometry:
+//                    newProps = SkSurfaceProps(flags, kRGB_V_SkPixelGeometry);
+//                    break;
+//                case kRGB_V_SkPixelGeometry:
+//                    newProps = SkSurfaceProps(flags, kBGR_V_SkPixelGeometry);
+//                    break;
+//                case kBGR_V_SkPixelGeometry:
+//                    newProps = SkSurfaceProps(flags, defaultPixelGeometry);
+//                    fDisplayOverrides.fSurfaceProps.fPixelGeometry = false;
+//                    break;
+//            }
+//        }
+//        paramsBuilder.surfaceProps(newProps);
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('H', "Font", "Hinting mode", [this]() {
+//        if (!fFontOverrides.fHinting) {
+//            fFontOverrides.fHinting = true;
+//            fFont.setHinting(SkFontHinting::kNone);
+//        } else {
+//            switch (fFont.getHinting()) {
+//                case SkFontHinting::kNone:
+//                    fFont.setHinting(SkFontHinting::kSlight);
+//                    break;
+//                case SkFontHinting::kSlight:
+//                    fFont.setHinting(SkFontHinting::kNormal);
+//                    break;
+//                case SkFontHinting::kNormal:
+//                    fFont.setHinting(SkFontHinting::kFull);
+//                    break;
+//                case SkFontHinting::kFull:
+//                    fFont.setHinting(SkFontHinting::kNone);
+//                    fFontOverrides.fHinting = false;
+//                    break;
+//            }
+//        }
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('D', "Modes", "DFT", [this]() {
+//        auto params = fWindow->getRequestedDisplayParams();
+//        auto paramsBuilder = make_display_params_builder(params);
+//        uint32_t flags = params->surfaceProps().flags();
+//        flags ^= SkSurfaceProps::kUseDeviceIndependentFonts_Flag;
+//        SkSurfaceProps newProps = SkSurfaceProps(flags, params->surfaceProps().pixelGeometry());
+//
+//        paramsBuilder.surfaceProps(newProps);
+//        fWindow->setRequestedDisplayParams(paramsBuilder.build());
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('L', "Font", "Subpixel Antialias Mode", [this]() {
+//        if (!fFontOverrides.fEdging) {
+//            fFontOverrides.fEdging = true;
+//            fFont.setEdging(SkFont::Edging::kAlias);
+//        } else {
+//            switch (fFont.getEdging()) {
+//                case SkFont::Edging::kAlias:
+//                    fFont.setEdging(SkFont::Edging::kAntiAlias);
+//                    break;
+//                case SkFont::Edging::kAntiAlias:
+//                    fFont.setEdging(SkFont::Edging::kSubpixelAntiAlias);
+//                    break;
+//                case SkFont::Edging::kSubpixelAntiAlias:
+//                    fFont.setEdging(SkFont::Edging::kAlias);
+//                    fFontOverrides.fEdging = false;
+//                    break;
+//            }
+//        }
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('S', "Font", "Subpixel Position Mode", [this]() {
+//        if (!fFontOverrides.fSubpixel) {
+//            fFontOverrides.fSubpixel = true;
+//            fFont.setSubpixel(false);
+//        } else {
+//            if (!fFont.isSubpixel()) {
+//                fFont.setSubpixel(true);
+//            } else {
+//                fFontOverrides.fSubpixel = false;
+//            }
+//        }
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('B', "Font", "Baseline Snapping", [this]() {
+//        if (!fFontOverrides.fBaselineSnap) {
+//            fFontOverrides.fBaselineSnap = true;
+//            fFont.setBaselineSnap(false);
+//        } else {
+//            if (!fFont.isBaselineSnap()) {
+//                fFont.setBaselineSnap(true);
+//            } else {
+//                fFontOverrides.fBaselineSnap = false;
+//            }
+//        }
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('p', "Transform", "Toggle Perspective Mode", [this]() {
+//        fPerspectiveMode = (kPerspective_Real == fPerspectiveMode) ? kPerspective_Fake
+//                                                                   : kPerspective_Real;
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('P', "Transform", "Toggle Perspective", [this]() {
+//        fPerspectiveMode = (kPerspective_Off == fPerspectiveMode) ? kPerspective_Real
+//                                                                  : kPerspective_Off;
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('a', "Transform", "Toggle Animation", [this]() {
+//        fAnimTimer.togglePauseResume();
+//    });
+//    fCommands.addCommand('u', "GUI", "Zoom UI", [this]() {
+//        fZoomUI = !fZoomUI;
+//        fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('=', "Transform", "Apply Backing Scale", [this]() {
+//        fApplyBackingScale = !fApplyBackingScale;
+//        fWindow->inval();
+//    });
+//    fCommands.addCommand('$', "ViaSerialize", "Toggle ViaSerialize", [this]() {
+//        fDrawViaSerialize = !fDrawViaSerialize;
+//        this->updateTitle();
+//        fWindow->inval();
+//    });
 
     // set up slides
     this->initSlides();
@@ -1440,32 +1442,32 @@ SkISize Viewer::currentSlideSize() const {
 }
 
 void Viewer::setupCurrentSlide() {
-    if (fCurrentSlide >= 0) {
-        // prepare dimensions for image slides
-        fGesture.resetTouchState();
-        fDefaultMatrix.reset();
-
-        const SkRect slideBounds = SkRect::Make(this->currentSlideSize());
-        const SkRect windowRect = SkRect::MakeIWH(fWindow->width(), fWindow->height());
-
-        // Start with a matrix that scales the slide to the available screen space
-        if (fWindow->scaleContentToFit()) {
-            if (windowRect.width() > 0 && windowRect.height() > 0) {
-                fDefaultMatrix = SkMatrix::RectToRect(slideBounds, windowRect,
-                                                      SkMatrix::kStart_ScaleToFit);
-            }
-        }
-
-        // Prevent the user from dragging content so far outside the window they can't find it again
-        fGesture.setTransLimit(slideBounds, windowRect, this->computePreTouchMatrix());
-
-        this->updateTitle();
-        this->updateUIState();
-
-        fStatsLayer.resetMeasurements();
-
-        fWindow->inval();
-    }
+//    if (fCurrentSlide >= 0) {
+//        // prepare dimensions for image slides
+//        fGesture.resetTouchState();
+//        fDefaultMatrix.reset();
+//
+//        const SkRect slideBounds = SkRect::Make(this->currentSlideSize());
+//        const SkRect windowRect = SkRect::MakeIWH(fWindow->width(), fWindow->height());
+//
+//        // Start with a matrix that scales the slide to the available screen space
+//        if (fWindow->scaleContentToFit()) {
+//            if (windowRect.width() > 0 && windowRect.height() > 0) {
+//                fDefaultMatrix = SkMatrix::RectToRect(slideBounds, windowRect,
+//                                                      SkMatrix::kStart_ScaleToFit);
+//            }
+//        }
+//
+//        // Prevent the user from dragging content so far outside the window they can't find it again
+//        fGesture.setTransLimit(slideBounds, windowRect, this->computePreTouchMatrix());
+//
+//        this->updateTitle();
+//        this->updateUIState();
+//
+//        fStatsLayer.resetMeasurements();
+//
+//        fWindow->inval();
+//    }
 }
 
 #define MAX_ZOOM_LEVEL  8.0f
@@ -1955,35 +1957,110 @@ void Viewer::onBackendCreated() {
 }
 
 void Viewer::onPaint(SkSurface* surface) {
-    this->drawSlide(surface);
 
-    fCommands.drawHelp(surface->getCanvas());
+    SkCanvas* canvas = surface->getCanvas();
+    canvas->clear(SK_ColorWHITE);
 
-    this->drawImGui();
+    // Fill the rectangle with gray color
+//    SkPaint fillPaint;
+//    fillPaint.setColor(SK_ColorGRAY); // Set the fill color to gray
+//    fillPaint.setStyle(SkPaint::kFill_Style); // Set the paint style to fill
+//    fillPaint.setAntiAlias(true);
+    // Define the rectangle's position and size
+//    canvas->translate(20, 20);
+//    canvas->drawRect(rect, fillPaint);
 
-    fLastImage.reset();
 
-    if (auto direct = fWindow->directContext()) {
-        // Clean out cache items that haven't been used in more than 10 seconds.
-        direct->performDeferredCleanup(std::chrono::seconds(10));
-    }
+    // Draw the rectangle border with red color
+    SkPaint strokePaint;
+    strokePaint.setColor(SK_ColorRED); // Set the color of the rectangle border
+    strokePaint.setStrokeWidth(10.0);
+    strokePaint.setStyle(SkPaint::kStroke_Style); // Set the paint style to stroke
+//    strokePaint.setStrokeCap(SkPaint::kSquare_Cap); // Set the stroke cap style to round
+    strokePaint.setStrokeJoin(SkPaint::kRound_Join);
+//    strokePaint.setAntiAlias(true);
+
+//    const SkScalar intervals[] = {20.0f, 10.0f};
+//    strokePaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0));
+
+    //  绘制三角形
+//    SkPath path;
+//    path.moveTo(100, 100);  // 第一个顶点
+//    path.lineTo(200, 100);  // 第二个顶点
+//    path.lineTo(150, 200);  // 第三个顶点
+//    path.close();           // 闭合路径
+//    canvas->drawPath(path, strokePaint);
+
+    // 绘制矩形
+    SkRect rect = SkRect::MakeXYWH(100, 100, 600, 400);
+    canvas->drawRect(rect, strokePaint);
+
+    // 绘制圆角矩形
+//    SkRect rect = SkRect::MakeXYWH(100, 100, 600, 400);
+//    SkRRect rr = SkRRect::MakeRectXY(rect, 10, 10);
+//    canvas->drawRRect(rr, strokePaint);
+
+    // 绘制五角星
+//    SkPath path;
+//    const int numPoints = 5;
+//    const float radius = 150.0f; // 外半径
+//    const float innerRadius = 60.0f; // 内半径
+//    float cx = 600; // 中心点 x 坐标
+//    float cy = 400; // 中心点 y 坐标
+//    const float angleStep = M_PI / numPoints;
+//    const float startAngle = -M_PI / 2; // 初始角度调整为 -90 度
+//
+//    for (int i = 0; i < 2 * numPoints; ++i) {
+//        float angle = startAngle + i * angleStep; // 加上初始角度
+//        float r = (i % 2 == 0) ? radius : innerRadius;
+//        float x = cx + r * cos(angle);
+//        float y = cy + r * sin(angle);
+//        if (i == 0) {
+//            path.moveTo(x, y);
+//        } else {
+//            path.lineTo(x, y);
+//        }
+//    }
+//    path.close();
+//    canvas->drawPath(path, strokePaint);
+
+
+    // 绘制圆形
+//    float cx = 300.0f; // 圆心的 x 坐标
+//    float cy = 300.0f; // 圆心的 y 坐标
+//    float radius = 100.0f; // 圆的半径
+//
+//    canvas->drawCircle(cx, cy, radius, strokePaint);
+
+//    this->drawSlide(surface);
+//
+//    fCommands.drawHelp(surface->getCanvas());
+//
+//    this->drawImGui();
+//
+//    fLastImage.reset();
+//
+//    if (auto direct = fWindow->directContext()) {
+//        // Clean out cache items that haven't been used in more than 10 seconds.
+//        direct->performDeferredCleanup(std::chrono::seconds(10));
+//    }
 }
 
 void Viewer::onResize(int width, int height) {
-    if (fCurrentSlide >= 0) {
-        // Resizing can reset the context on some backends so just tear it all down.
-        // We'll rebuild these resources on the next draw.
-        fSlides[fCurrentSlide]->gpuTeardown();
-
-        SkScalar scaleFactor = 1.0;
-        if (fApplyBackingScale) {
-            scaleFactor = fWindow->scaleFactor();
-        }
-        fSlides[fCurrentSlide]->resize(width / scaleFactor, height / scaleFactor);
-    }
-
-    fImGuiLayer.setScaleFactor(fWindow->scaleFactor());
-    fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
+//    if (fCurrentSlide >= 0) {
+//        // Resizing can reset the context on some backends so just tear it all down.
+//        // We'll rebuild these resources on the next draw.
+//        fSlides[fCurrentSlide]->gpuTeardown();
+//
+//        SkScalar scaleFactor = 1.0;
+//        if (fApplyBackingScale) {
+//            scaleFactor = fWindow->scaleFactor();
+//        }
+//        fSlides[fCurrentSlide]->resize(width / scaleFactor, height / scaleFactor);
+//    }
+//
+//    fImGuiLayer.setScaleFactor(fWindow->scaleFactor());
+//    fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
 }
 
 SkPoint Viewer::mapEvent(float x, float y) {

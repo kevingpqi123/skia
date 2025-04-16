@@ -259,6 +259,7 @@ sk_sp<GrGLProgram> GrGLProgramBuilder::finalize(const GrGLPrecompiledProgram* pr
         &fVS.fCompilerString,
         &fFS.fCompilerString,
     };
+    printf("---fFS.fCompilerString:\n%s\n", fFS.fCompilerString.c_str());
     std::string cached_sksl[kGrShaderTypeCount];
     if (precompiledProgram) {
         // This is very similar to when we get program binaries. We even set that flag, as it's

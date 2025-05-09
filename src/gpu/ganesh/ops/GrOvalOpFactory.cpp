@@ -3118,6 +3118,7 @@ private:
                                          SK_ScalarNearlyZero, yMaxOffset};
 
             auto maybeScale = VertexWriter::If(fUseScale, std::max(rrect.fXRadius, rrect.fYRadius));
+            printf("--vertex data--start--\n");
             for (int i = 0; i < 4; ++i) {
                 verts << bounds.fLeft << yCoords[i]
                       << color
@@ -3125,11 +3126,17 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
+                printf("%f, %f, %f, %f, %f, %f, %f, %f, %f,\n", bounds.fLeft, yCoords[i], static_cast<float>(color.getValue()),
+                       xMaxOffset, yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
+
                 verts << (bounds.fLeft + xOuterRadius) << yCoords[i]
                       << color
                       << SK_ScalarNearlyZero << yOuterOffsets[i]
                       << maybeScale
                       << reciprocalRadii;
+
+                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f,\n", (bounds.fLeft + xOuterRadius), yCoords[i], color.getValue(),SK_ScalarNearlyZero,
+                       yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
 
                 verts << (bounds.fRight - xOuterRadius) << yCoords[i]
                       << color
@@ -3137,12 +3144,18 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
+                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f,\n", (bounds.fRight - xOuterRadius), yCoords[i], color.getValue(), SK_ScalarNearlyZero,
+                       yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
+
                 verts << bounds.fRight << yCoords[i]
                       << color
                       << xMaxOffset << yOuterOffsets[i]
                       << maybeScale
                       << reciprocalRadii;
+
+                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f\n", bounds.fRight, yCoords[i], color.getValue(),SK_ScalarNearlyZero, yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
             }
+            printf("--vertex data--end--\n");
         }
         fMesh = helper.mesh();
     }

@@ -394,3 +394,55 @@ void main() {
 }
 
 
+
+//  EllipseGeometryProcessor
+
+#version 400
+
+uniform vec4 sk_RTAdjust;
+in vec2 inPosition;
+in vec4 inColor;
+in vec2 inEllipseOffset; // 椭圆的偏移量，用于计算片段相对于椭圆中心的位置
+in vec4 inEllipseRadii;  // 椭圆的半径信息，xy 表示外椭圆半径，zw 表示内椭圆半径（用于空心椭圆）
+noperspective out vec2 vEllipseOffsets_S0;
+noperspective out vec4 vEllipseRadii_S0;
+noperspective out vec4 vinColor_S0;
+void main() {
+    vEllipseOffsets_S0 = inEllipseOffset;
+    vEllipseRadii_S0 = inEllipseRadii;
+    vinColor_S0 = inColor;
+    vec2 _tmp_0_inPosition = inPosition;
+    gl_Position = vec4(_tmp_0_inPosition, 0.0, 1.0);  // 转变为齐次坐标(x, y, 0.0, 1.0)
+    gl_Position = vec4(gl_Position.xy * sk_RTAdjust.xz + gl_Position.ww * sk_RTAdjust.yw, 0.0, gl_Position.w); // 使用 sk_RTAdjust 对 gl_Position 进行屏幕坐标调整，计算最终的顶点位置
+}
+
+#version 400
+
+out vec4 sk_FragColor;
+noperspective in vec2 vEllipseOffsets_S0;
+noperspective in vec4 vEllipseRadii_S0;
+noperspective in vec4 vinColor_S0;
+void main() {
+    vec4 outputColor_S0 = vinColor_S0;
+    vec2 offset = vEllipseOffsets_S0;
+    offset *= vEllipseRadii_S0.xy; // 算当前片段相对于外椭圆的偏移量。
+    float test = dot(offset, offset) - 1.0; // 计算当前片段相对于外椭圆的偏移量的平方和，减去 1.0，判断是否在外椭圆内
+    vec2 grad = (2.0 * offset) * vEllipseRadii_S0.xy; // 计算当前片段相对于外椭圆的梯度
+    float grad_dot = dot(grad, grad); // 计算梯度的平方和
+    grad_dot = max(grad_dot, 1.1755e-38); // 避免除以零
+    float invlen = inversesqrt(grad_dot); // 计算梯度的倒数平方根
+    float edgeAlpha = clamp(0.5 - test * invlen, 0.0, 1.0); // 外椭圆透明度计算
+    offset = vEllipseOffsets_S0 * vEllipseRadii_S0.zw; // 算当前片段相对于内椭圆的偏移量
+    test = dot(offset, offset) - 1.0; // 计算当前片段相对于内椭圆的偏移量的平方和，减去 1.0，判断是否在内椭圆内
+    grad = (2.0 * offset) * vEllipseRadii_S0.zw; // 计算当前片段相对于内椭圆的梯度
+    grad_dot = dot(grad, grad); // 计算梯度的平方和
+    invlen = inversesqrt(grad_dot); // 计算梯度的倒数平方根
+    edgeAlpha *= clamp(0.5 + test * invlen, 0.0, 1.0);// 内椭圆的透明度与外椭圆透明度相乘，形成空心椭圆的效果
+    vec4 outputCoverage_S0 = vec4(edgeAlpha);
+    {
+        sk_FragColor = outputColor_S0 * outputCoverage_S0; // 将颜色与透明度融合，输出最终的片段颜色
+    }
+}
+
+
+

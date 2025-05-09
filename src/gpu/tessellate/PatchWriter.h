@@ -317,6 +317,13 @@ public:
             // to set the parametric segments in order to recover the LinearTolerances state at the
             // time the deferred patch was recorded.
             fTolerances.setParametricSegments(fDeferredPatch.fN_p4);
+            size_t dataSize = PatchStride(fAttribs);
+            printf("Deferred patch data, dataSize: %zu\n", dataSize);
+            for (size_t i = 0; i < dataSize / sizeof(float); ++i) {
+                printf("%f ", reinterpret_cast<float*>(fDeferredPatch.fData)[i]);
+            }
+            printf("\n");
+            printf("Deferred patch data: end! \n");
             if (VertexWriter vw = fPatchAllocator.append(fTolerances)) {
                 vw << VertexWriter::Array<char>(fDeferredPatch.fData, PatchStride(fAttribs));
             }

@@ -1974,11 +1974,13 @@ void Viewer::onPaint(SkSurface* surface) {
     // Draw the rectangle border with red color
     SkPaint strokePaint;
     strokePaint.setColor(SK_ColorRED); // Set the color of the rectangle border
+//    strokePaint.setStyle(SkPaint::kFill_Style); // Set the paint style to stroke
+
     strokePaint.setStrokeWidth(10.0);
     strokePaint.setStyle(SkPaint::kStroke_Style); // Set the paint style to stroke
-//    strokePaint.setStrokeCap(SkPaint::kSquare_Cap); // Set the stroke cap style to round
-    strokePaint.setStrokeJoin(SkPaint::kRound_Join);
-//    strokePaint.setAntiAlias(true);
+////    strokePaint.setStrokeCap(SkPaint::kSquare_Cap); // Set the stroke cap style to round
+    strokePaint.setStrokeJoin(SkPaint::kBevel_Join);
+    strokePaint.setAntiAlias(true);
 
 //    const SkScalar intervals[] = {20.0f, 10.0f};
 //    strokePaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0));
@@ -1992,13 +1994,17 @@ void Viewer::onPaint(SkSurface* surface) {
 //    canvas->drawPath(path, strokePaint);
 
     // 绘制矩形
-    SkRect rect = SkRect::MakeXYWH(100, 100, 600, 400);
-    canvas->drawRect(rect, strokePaint);
-
-    // 绘制圆角矩形
 //    SkRect rect = SkRect::MakeXYWH(100, 100, 600, 400);
-//    SkRRect rr = SkRRect::MakeRectXY(rect, 10, 10);
-//    canvas->drawRRect(rr, strokePaint);
+//    canvas->drawRect(rect, strokePaint);
+
+     // 绘制圆角矩形
+    SkRect rect = SkRect::MakeXYWH(100, 100, 600, 400);
+    SkRRect rr = SkRRect::MakeRectXY(rect, 10, 10);
+    canvas->drawRRect(rr, strokePaint);
+
+    // 绘制椭圆
+//    SkRect oval = SkRect::MakeXYWH(100, 100, 600, 400);
+//    canvas->drawOval(oval, strokePaint);
 
     // 绘制五角星
 //    SkPath path;

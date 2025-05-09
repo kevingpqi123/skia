@@ -270,6 +270,12 @@ private:
 
         if (fStrokeWidth > 0) {
             init_nonaa_stroke_rect_strip(vertex, fRect, fStrokeWidth);
+            printf("Hairline rect: ");
+            for (int i = 0; i < vertexCount; i++) {
+                printf("%f %f ", vertex[i].fX, vertex[i].fY);
+            }
+            printf("\n");
+
         } else {
             // hairline
             vertex[0].set(fRect.fLeft, fRect.fTop);

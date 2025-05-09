@@ -356,6 +356,8 @@ public:
 
     size_t size() const { return fWideColor ? 16 : 4; }
 
+    uint32_t getValue() { return fColor[0]; }
+
 private:
     template <typename T>
     friend VertexWriter& operator<<(VertexWriter&, const T&);

@@ -90,6 +90,8 @@ void write_fixed_count_patches(StrokeWriter&& patchWriter,
                     patchWriter.updateJoinControlPointAttrib(p[0]);
                     break;
                 case Verb::kLine:
+                    printf("---value--p[0].x:%f, p[0].y:%f\n", p[0].x(), p[0].y());
+                    printf("---value--p[1].x:%f, p[1].y:%f\n", p[1].x(), p[1].y());
                     patchWriter.writeLine(p[0], p[1]);
                     break;
                 case Verb::kQuad:
@@ -172,6 +174,7 @@ void StrokeTessellator::prepare(GrMeshDrawTarget* target,
 
     write_fixed_count_patches(std::move(patchWriter), shaderMatrix, pathStrokeList);
     fVertexCount = FixedCountStrokes::VertexCount(worstCase);
+
 
     if (!target->caps().shaderCaps()->fVertexIDSupport) {
         // Our shader won't be able to use sk_VertexID. Bind a fallback vertex buffer with the IDs

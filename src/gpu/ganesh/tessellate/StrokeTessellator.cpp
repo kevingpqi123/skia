@@ -90,8 +90,6 @@ void write_fixed_count_patches(StrokeWriter&& patchWriter,
                     patchWriter.updateJoinControlPointAttrib(p[0]);
                     break;
                 case Verb::kLine:
-                    printf("---value--p[0].x:%f, p[0].y:%f\n", p[0].x(), p[0].y());
-                    printf("---value--p[1].x:%f, p[1].y:%f\n", p[1].x(), p[1].y());
                     patchWriter.writeLine(p[0], p[1]);
                     break;
                 case Verb::kQuad:
@@ -200,6 +198,26 @@ void StrokeTessellator::draw(GrOpFlushState* flushState) const {
         return;
     }
     for (const auto& instanceChunk : fVertexChunkArray) {
+        // 获取当前块的顶点数据缓冲区
+        auto* instanceBuffer = const_cast<GrBuffer*>(instanceChunk.fBuffer.get());
+        auto* gpuBuffer = static_cast<GrGpuBuffer*>(instanceBuffer);
+
+        // 映射缓冲区
+        void* mappedData = gpuBuffer->map();
+        if (mappedData) {
+            float* floatData = reinterpret_cast<float*>(mappedData);
+            size_t floatCount = gpuBuffer->size() / sizeof(float); // 计算 float 数据的数量
+
+            // 遍历并打印每个 float 数据
+            for (size_t i = 0; i < floatCount; ++i) {
+                printf("Data[%zu]: %f\n", i, floatData[i]);
+            }
+
+            // 解除映射
+            gpuBuffer->unmap();
+        } else {
+            printf("Failed to map buffer.\n");
+        }
         flushState->bindBuffers(nullptr, instanceChunk.fBuffer, fVertexBufferIfNoIDSupport);
         flushState->drawInstanced(instanceChunk.fCount,
                                   instanceChunk.fBase,

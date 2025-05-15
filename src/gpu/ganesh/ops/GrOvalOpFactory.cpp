@@ -2751,6 +2751,7 @@ private:
         }
 
         int currStartVertex = 0;
+        printf("---vertex data--start--\n");
         for (const auto& rrect : fRRects) {
             VertexColor color(rrect.fColor, fWideColor);
             SkScalar outerRadius = rrect.fOuterRadius;
@@ -2771,21 +2772,33 @@ private:
                       << -1.0f << yOuterRadii[i]
                       << outerRadius << innerRadius;
 
+                printf("%f, %f, %f, %f, %f, %f, %f,\n", bounds.fLeft, yCoords[i], static_cast<float>(color.getValue()),
+                       -1.0f, yOuterRadii[i], outerRadius, innerRadius);
+
                 verts << (bounds.fLeft + outerRadius) << yCoords[i]
                       << color
                       << 0.0f << yOuterRadii[i]
                       << outerRadius << innerRadius;
 
+                printf("%f, %f, %f, %f, %f, %f, %f,\n", (bounds.fLeft + outerRadius), yCoords[i], static_cast<float>(color.getValue()),
+                       0.0f, yOuterRadii[i], outerRadius, innerRadius);
+
                 verts << (bounds.fRight - outerRadius) << yCoords[i]
                       << color
                       << 0.0f << yOuterRadii[i]
                       << outerRadius << innerRadius;
+                printf("%f, %f, %f, %f, %f, %f, %f,\n", (bounds.fRight - outerRadius), yCoords[i], static_cast<float>(color.getValue()),
+                       0.0f, yOuterRadii[i], outerRadius, innerRadius);
+
 
                 verts << bounds.fRight << yCoords[i]
                       << color
                       << 1.0f << yOuterRadii[i]
                       << outerRadius << innerRadius;
+                printf("%f, %f, %f, %f, %f, %f, %f,\n", bounds.fRight, yCoords[i], static_cast<float>(color.getValue()),
+                       1.0f, yOuterRadii[i], outerRadius, innerRadius);
             }
+            printf("---vertex data--end--\n");
             // Add the additional vertices for overstroked rrects.
             // Effectively this is an additional stroked rrect, with its
             // outer radius = outerRadius - innerRadius, and inner radius = 0.
@@ -2808,9 +2821,15 @@ private:
 
             const uint16_t* primIndices = rrect_type_to_indices(rrect.fType);
             const int primIndexCount = rrect_type_to_index_count(rrect.fType);
+            printf("---indices data--start--\n");
             for (int i = 0; i < primIndexCount; ++i) {
                 *indices++ = primIndices[i] + currStartVertex;
+                printf("%d,", primIndices[i] + currStartVertex);
+                if ((i + 1) % 6 == 0) {
+                    printf("\n");
+                }
             }
+            printf("---indices data--end--\n");
 
             currStartVertex += rrect_type_to_vert_count(rrect.fType);
         }
@@ -3075,6 +3094,7 @@ private:
             return;
         }
 
+        printf("--vertex data--start--\n");
         for (const auto& rrect : fRRects) {
             VertexColor color(rrect.fColor, fWideColor);
             // Compute the reciprocals of the radii here to save time in the shader
@@ -3118,7 +3138,7 @@ private:
                                          SK_ScalarNearlyZero, yMaxOffset};
 
             auto maybeScale = VertexWriter::If(fUseScale, std::max(rrect.fXRadius, rrect.fYRadius));
-            printf("--vertex data--start--\n");
+
             for (int i = 0; i < 4; ++i) {
                 verts << bounds.fLeft << yCoords[i]
                       << color
@@ -3126,7 +3146,7 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
-                printf("%f, %f, %f, %f, %f, %f, %f, %f, %f,\n", bounds.fLeft, yCoords[i], static_cast<float>(color.getValue()),
+                printf("%f, %f, %f, %f, %f, %f, %f, %f,\n", bounds.fLeft, yCoords[i],
                        xMaxOffset, yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
 
                 verts << (bounds.fLeft + xOuterRadius) << yCoords[i]
@@ -3135,7 +3155,7 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
-                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f,\n", (bounds.fLeft + xOuterRadius), yCoords[i], color.getValue(),SK_ScalarNearlyZero,
+                printf("%f, %f, %f, %f, %f, %f, %f, %f,\n", (bounds.fLeft + xOuterRadius), yCoords[i], SK_ScalarNearlyZero,
                        yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
 
                 verts << (bounds.fRight - xOuterRadius) << yCoords[i]
@@ -3144,7 +3164,7 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
-                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f,\n", (bounds.fRight - xOuterRadius), yCoords[i], color.getValue(), SK_ScalarNearlyZero,
+                printf("%f, %f, %f, %f, %f, %f, %f, %f,\n", (bounds.fRight - xOuterRadius), yCoords[i], SK_ScalarNearlyZero,
                        yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
 
                 verts << bounds.fRight << yCoords[i]
@@ -3153,10 +3173,11 @@ private:
                       << maybeScale
                       << reciprocalRadii;
 
-                printf("%f, %f, %u, %f, %f, %f, %f, %f, %f\n", bounds.fRight, yCoords[i], color.getValue(),SK_ScalarNearlyZero, yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
+                printf("%f, %f, %f, %f, %f, %f, %f, %f,\n", bounds.fRight, yCoords[i], SK_ScalarNearlyZero, yOuterOffsets[i], reciprocalRadii[0], reciprocalRadii[1], reciprocalRadii[2], reciprocalRadii[3]);
             }
-            printf("--vertex data--end--\n");
         }
+
+        printf("--vertex data--end--\n");
         fMesh = helper.mesh();
     }
 

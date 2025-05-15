@@ -1062,24 +1062,24 @@ void SurfaceDrawContext::drawRRect(const GrClip* origClip,
     GrAAType aaType = this->chooseAAType(aa);
 
     GrOp::Owner op;
-//#ifndef SK_ENABLE_OPTIMIZE_SIZE
-//    if (aaType == GrAAType::kCoverage                          &&
-//        !fCanUseDynamicMSAA                                    &&
-//        !this->caps()->reducedShaderMode()                     &&
-//        rrect.isSimple()                                       &&
-//        rrect.getSimpleRadii().fX == rrect.getSimpleRadii().fY &&
-//        viewMatrix.rectStaysRect() && viewMatrix.isSimilarity()) {
-//        // In specific cases we use a dedicated circular round rect op to try and get better perf.
-//        assert_alive(paint);
-//        op = GrOvalOpFactory::MakeCircularRRectOp(fContext, std::move(paint), viewMatrix, rrect,
-//                                                  stroke, this->caps()->shaderCaps());
-//    }
-//#endif
-//    if (!op && style.isSimpleFill()) {
-//        assert_alive(paint);
-//        op = FillRRectOp::Make(fContext, this->arenaAlloc(), std::move(paint), viewMatrix, rrect,
-//                               rrect.rect(), GrAA(aaType != GrAAType::kNone));
-//    }
+#ifndef SK_ENABLE_OPTIMIZE_SIZE
+    if (aaType == GrAAType::kCoverage                          &&
+        !fCanUseDynamicMSAA                                    &&
+        !this->caps()->reducedShaderMode()                     &&
+        rrect.isSimple()                                       &&
+        rrect.getSimpleRadii().fX == rrect.getSimpleRadii().fY &&
+        viewMatrix.rectStaysRect() && viewMatrix.isSimilarity()) {
+        // In specific cases we use a dedicated circular round rect op to try and get better perf.
+        assert_alive(paint);
+        op = GrOvalOpFactory::MakeCircularRRectOp(fContext, std::move(paint), viewMatrix, rrect,
+                                                  stroke, this->caps()->shaderCaps());
+    }
+#endif
+    if (!op && style.isSimpleFill()) {
+        assert_alive(paint);
+        op = FillRRectOp::Make(fContext, this->arenaAlloc(), std::move(paint), viewMatrix, rrect,
+                               rrect.rect(), GrAA(aaType != GrAAType::kNone));
+    }
 #ifndef SK_ENABLE_OPTIMIZE_SIZE
     if (!op && (aaType == GrAAType::kCoverage || fCanUseDynamicMSAA)) {
         assert_alive(paint);

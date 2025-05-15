@@ -687,7 +687,8 @@ void GrStrokeTessellationShader::Impl::setData(const GrGLSLProgramDataManager& p
         pdman.set3f(fTessControlArgsUniform,
                     numRadialSegmentsPerRadian,  // NUM_RADIAL_SEGMENTS_PER_RADIAN
                     skgpu::tess::GetJoinType(stroke),  // JOIN_TYPE
-                    strokeRadius);  // STROKE_RADIUS
+                    strokeRadius);
+        printf("fTessControlArgsUniform: %f, %f, %f \n", numRadialSegmentsPerRadian, skgpu::tess::GetJoinType(stroke), strokeRadius);// STROKE_RADIUS
     } else {
         SkASSERT(!stroke.isHairlineStyle());
         pdman.set1f(fTessControlArgsUniform, maxScale);
@@ -696,8 +697,10 @@ void GrStrokeTessellationShader::Impl::setData(const GrGLSLProgramDataManager& p
     // Set up the view matrix, if any.
     const SkMatrix& m = shader.viewMatrix();
     pdman.set2f(fTranslateUniform, m.getTranslateX(), m.getTranslateY());
+    printf("fTranslateUniform: %f, %f \n", m.getTranslateX(), m.getTranslateY());
     pdman.set4f(fAffineMatrixUniform, m.getScaleX(), m.getSkewY(), m.getSkewX(),
                 m.getScaleY());
+    printf("fAffineMatrixUniform:%f, %f, %f, %f \n", m.getScaleX(), m.getSkewY(), m.getSkewX(), m.getScaleY());
 
     if (!shader.hasDynamicColor()) {
         pdman.set4fv(fColorUniform, 1, shader.color().vec());

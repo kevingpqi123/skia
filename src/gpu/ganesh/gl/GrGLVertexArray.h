@@ -13,6 +13,7 @@
 #include "include/private/gpu/ganesh/GrTypesPriv.h"
 #include "src/gpu/ganesh/GrGpuResource.h"
 
+#include <src/gpu/ganesh/GrGpuBuffer.h>
 #include <cstddef>
 
 class GrBuffer;

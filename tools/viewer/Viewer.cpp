@@ -1973,14 +1973,15 @@ void Viewer::onPaint(SkSurface* surface) {
 
     // Draw the rectangle border with red color
     SkPaint strokePaint;
-    strokePaint.setColor(SK_ColorRED); // Set the color of the rectangle border
+    strokePaint.setColor(SK_ColorBLUE); // Set the color of the rectangle border
 //    strokePaint.setStyle(SkPaint::kFill_Style); // Set the paint style to stroke
 
     strokePaint.setStrokeWidth(10.0);
-    strokePaint.setStyle(SkPaint::kStroke_Style); // Set the paint style to stroke
+//    strokePaint.setStyle(SkPaint::kFill_Style); // Set the paint style to stroke
+    strokePaint.setStyle(SkPaint::kStroke_Style);
 ////    strokePaint.setStrokeCap(SkPaint::kSquare_Cap); // Set the stroke cap style to round
-    strokePaint.setStrokeJoin(SkPaint::kBevel_Join);
-    strokePaint.setAntiAlias(true);
+    strokePaint.setStrokeJoin(SkPaint::kMiter_Join);
+//    strokePaint.setAntiAlias(true);
 
 //    const SkScalar intervals[] = {20.0f, 10.0f};
 //    strokePaint.setPathEffect(SkDashPathEffect::Make(intervals, 2, 0));

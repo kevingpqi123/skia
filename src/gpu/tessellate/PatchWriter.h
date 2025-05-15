@@ -165,6 +165,7 @@ struct AttribValue {
 
 template <PatchAttribs A, typename T, bool Required, bool Optional>
 VertexWriter& operator<<(VertexWriter& w, const AttribValue<A, T, Required, Optional>& v) {
+    printf("-----operator<<------\n");
     if constexpr (Required) {
         w << v.fV; // always write
     } else if constexpr (Optional) {
@@ -320,7 +321,7 @@ public:
             size_t dataSize = PatchStride(fAttribs);
             printf("Deferred patch data, dataSize: %zu\n", dataSize);
             for (size_t i = 0; i < dataSize / sizeof(float); ++i) {
-                printf("%f ", reinterpret_cast<float*>(fDeferredPatch.fData)[i]);
+                printf("%f, ", reinterpret_cast<float*>(fDeferredPatch.fData)[i]);
             }
             printf("\n");
             printf("Deferred patch data: end! \n");
@@ -520,8 +521,10 @@ private:
                              const JoinAttrib& join,
                              float explicitCurveType) {
         // NOTE: operator<< overrides automatically handle optional and disabled attribs.
+        printf("----emitPatchAttribs----start---\n");
         vertexWriter << join << fFanPoint << fStrokeParams << fColor << fDepth
                      << CurveTypeAttrib{fAttribs, explicitCurveType} << fSsboIndex;
+        printf("----emitPatchAttribs----end---\n");
     }
 
     AI VertexWriter appendPatch() {
@@ -544,6 +547,7 @@ private:
             // case, correct data will overwrite it when the contour is closed (this is fine since a
             // deferred patch writes to CPU memory instead of directly to the GPU buffer).
             vw << p0 << p1 << p2 << p3;
+            printf("%f, %f, %f, %f, %f, %f, %f, %f, \n", p0.x(), p0.y(), p1.x(), p1.y(), p2.x(), p2.y(), p3.x(), p3.y());
             this->emitPatchAttribs(std::move(vw), fJoin, explicitCurveType);
 
             // Automatically update join control point for next patch.

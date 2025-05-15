@@ -523,9 +523,15 @@ sk_sp<const GrGpuBuffer> GrResourceProvider::createPatternedIndexBuffer(
     for (int i = 0; i < reps; ++i) {
         int baseIdx = i * patternSize;
         uint16_t baseVert = (uint16_t)(i * vertCount);
+        printf("----start-----\n");
         for (int j = 0; j < patternSize; ++j) {
             data[baseIdx+j] = baseVert + pattern[j];
+            printf("%d, ", data[baseIdx+j]);
+            if ((j +1) % 6 == 0) {
+                printf("\n");
+            }
         }
+        printf("----end-----\n");
     }
     if (temp.get()) {
         if (!buffer->updateData(data, /*offset=*/0, bufferSize, /*preserve=*/false)) {

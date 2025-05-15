@@ -1,0 +1,72 @@
+# Stroke
+# enable antialias
+## Miter
+
+//  用于实现一个圆形的绘制效果，支持内外边缘的抗锯齿效果
+
+#version 400
+
+uniform vec4 sk_RTAdjust;
+in vec2 inPosition;
+in vec4 inColor;
+in vec4 inCircleEdge;  // 圆的边缘信息，包含外边缘和内边缘的相关数据
+noperspective out vec4 vinCircleEdge_S0;
+noperspective out vec4 vinColor_S0;
+void main() {
+    vinCircleEdge_S0 = inCircleEdge;
+    vinColor_S0 = inColor;
+    vec2 _tmp_0_inPosition = inPosition;
+    gl_Position = vec4(_tmp_0_inPosition, 0.0, 1.0);
+    // 将顶点坐标从局部空间转换到屏幕空间
+    gl_Position = vec4(gl_Position.xy * sk_RTAdjust.xz + gl_Position.ww * sk_RTAdjust.yw, 0.0, gl_Position.w);
+}
+
+
+#version 400
+
+out vec4 sk_FragColor;
+noperspective in vec4 vinCircleEdge_S0;
+noperspective in vec4 vinColor_S0;
+void main() {
+    vec4 circleEdge = vinCircleEdge_S0;
+    vec4 outputColor_S0 = vinColor_S0;
+    float d = length(circleEdge.xy); // 计算当前片元到圆心的距离
+    float distanceToOuterEdge = circleEdge.z * (1.0 - d); // 计算当前片元到外边缘的距离
+    float edgeAlpha = clamp(distanceToOuterEdge, 0.0, 1.0); // 计算外边缘的透明度
+    float distanceToInnerEdge = circleEdge.z * (d - circleEdge.w); // 计算当前片元到内边缘的距离
+    float innerAlpha = clamp(distanceToInnerEdge, 0.0, 1.0); // 计算内边缘的透明度
+    edgeAlpha *= innerAlpha; // 计算最终的透明度
+    vec4 outputCoverage_S0 = vec4(edgeAlpha);
+    {
+        sk_FragColor = outputColor_S0 * outputCoverage_S0; // 计算最终的颜色
+    }
+}
+
+### 实现分析
+CircularRRectOp
+
+顶点数据拆分
+顶点数据数量
+static int rrect_type_to_vert_count(RRectType type) {
+    switch (type) {
+        case kFill_RRectType:
+        case kStroke_RRectType:
+            return kVertsPerStandardRRect;   // 16
+        case kOverstroke_RRectType:
+            return kVertsPerOverstrokeRRect;  // 24
+    }
+    SK_ABORT("Invalid type");
+}
+
+顶点索引数量
+static int rrect_type_to_index_count(RRectType type) {
+    switch (type) {
+        case kFill_RRectType:
+            return kIndicesPerFillRRect;  // 54
+        case kStroke_RRectType:
+            return kIndicesPerStrokeRRect;  // 48
+        case kOverstroke_RRectType:
+            return kIndicesPerOverstrokeRRect; // 72
+    }
+    SK_ABORT("Invalid type");
+}

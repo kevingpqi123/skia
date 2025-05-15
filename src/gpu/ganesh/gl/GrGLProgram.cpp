@@ -179,6 +179,7 @@ void GrGLProgram::setRenderTargetState(const GrRenderTarget* rt,
         bool flip = (origin == kBottomLeft_GrSurfaceOrigin);
         std::array<float, 4> v = SkSL::Compiler::GetRTAdjustVector(dimensions, flip);
         fProgramDataManager.set4fv(fBuiltinUniformHandles.fRTAdjustmentUni, 1, v.data());
+        printf("RTAdjustVector: [%f, %f, %f, %f]\n", v[0], v[1], v[2], v[3]);
         if (fBuiltinUniformHandles.fRTFlipUni.isValid()) {
             std::array<float, 2> d = SkSL::Compiler::GetRTFlipVector(dimensions.height(), flip);
             fProgramDataManager.set2fv(fBuiltinUniformHandles.fRTFlipUni, 1, d.data());
